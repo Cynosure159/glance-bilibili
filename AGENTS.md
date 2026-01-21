@@ -64,7 +64,7 @@ type Video struct {
 ```yaml
 # glance.yml
 - type: extension
-  url: http://localhost:8082/videos
+  url: http://localhost:8082/
   allow-potentially-dangerous-html: true
   cache: 5m
 ```
@@ -86,9 +86,10 @@ type Video struct {
 
 | 端点 | 方法 | 描述 |
 |------|------|------|
-| `/videos` | GET | HTML Widget（供 Glance 嵌入）|
+| `/` | GET | HTML Widget（供 Glance 嵌入）|
+| `/json` | GET | JSON 格式的排序视频列表 |
+| `/help` | GET | 帮助/说明页 |
 | `/health` | GET | 健康检查 |
-| `/` | GET | 首页说明 |
 
 **参数**：
 | 参数 | 默认值 | 说明 |

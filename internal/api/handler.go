@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"encoding/json"
 	"glance-bilibil/internal/models"
 	"glance-bilibil/internal/service"
 )
@@ -153,15 +154,48 @@ func (h *Handler) VideosHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// JSONHandler 以 JSON 格式输出排序后的视频列表
+func (h *Handler) JSONHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	cfg := h.service.GetConfig()
+
+	limit := cfg.Limit
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	var videos models.VideoList
+	var err error
+
+	if mid := query.Get("mid"); mid != "" {
+		videos, err = h.service.FetchChannelVideos(mid, limit)
+	} else {
+		videos, err = h.service.FetchAllVideos(limit)
+	}
+
+	if err != nil {
+		log.Printf("[ERROR] 获取视频失败: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(videos)
+}
+
 // HealthHandler 健康检查
 func (h *Handler) HealthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 }
 
-// IndexHandler 首页说明
-func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
+// HelpHandler 帮助说明页
+func (h *Handler) HelpHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/help" {
 		http.NotFound(w, r)
 		return
 	}
@@ -199,7 +233,9 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	<ul>` + channelList + `</ul>
 	
 	<h2>使用方法</h2>
-	<p><code>GET /videos</code> - 获取所有 UP 主的视频汇总（按时间排序）</p>
+	<p><code>GET /</code> - 获取所有 UP 主的视频汇总 HTML（供 Glance 嵌入）</p>
+	<p><code>GET /json</code> - 获取所有 UP 主的视频汇总 JSON</p>
+	<p><code>GET /help</code> - 本帮助说明页</p>
 
 	<h2>参数说明</h2>
 	<table>
@@ -211,9 +247,10 @@ func (h *Handler) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	
 	<h2>示例</h2>
 	<ul>
-		<li><a href="/videos">/videos</a> - 所有 UP 主视频汇总</li>
-		<li><a href="/videos?limit=10&style=grid">/videos?limit=10&style=grid</a></li>
-		<li><a href="/videos?mid=946974&limit=5">/videos?mid=946974&limit=5</a> - 单个 UP</li>
+		<li><a href="/">/</a> - 所有 UP 主视频汇总</li>
+		<li><a href="/json">/json</a> - 获取 JSON 格式视频汇总</li>
+		<li><a href="/?limit=10&style=grid">/?limit=10&style=grid</a></li>
+		<li><a href="/?mid=946974&limit=5">/?mid=946974&limit=5</a> - 单个 UP</li>
 	</ul>
 </body>
 </html>`

@@ -54,9 +54,10 @@ func main() {
 	}
 
 	// 注册路由
-	http.HandleFunc("/videos", handler.VideosHandler)
+	http.HandleFunc("/json", handler.JSONHandler)
 	http.HandleFunc("/health", handler.HealthHandler)
-	http.HandleFunc("/", handler.IndexHandler)
+	http.HandleFunc("/help", handler.HelpHandler)
+	http.HandleFunc("/", handler.VideosHandler)
 
 	// 启动服务
 	addr := fmt.Sprintf(":%d", cfg.Port)
