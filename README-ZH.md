@@ -22,14 +22,11 @@
 在项目根目录创建 `config/config.json`:
 ```json
 {
-  "port": 8082,
   "channels": [
     { "mid": "946974", "name": "影视飓风" },
     { "mid": "163637592", "name": "老师好我叫何同学" },
     { "mid": "25876945", "name": "极客湾Geekerwan" }
-  ],
-  "limit": 25,
-  "style": "default"
+  ]
 }
 ```
 
@@ -37,7 +34,7 @@
 编译并启动：
 ```bash
 go build -o glance-bilibil .
-./glance-bilibil -config config/config.json
+./glance-bilibil -config config/config.json -port 8082 -limit 25
 ```
 
 ---

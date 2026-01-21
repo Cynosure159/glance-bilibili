@@ -8,12 +8,9 @@ import (
 	"path/filepath"
 )
 
-// Config 应用配置
+// Config 应用配置 (仅包含 UP 主通道信息)
 type Config struct {
-	Port     int           `json:"port"`     // HTTP 服务端口
 	Channels []ChannelInfo `json:"channels"` // UP 主配置列表
-	Limit    int           `json:"limit"`    // 默认显示视频数量
-	Style    string        `json:"style"`    // 默认显示样式
 }
 
 // ChannelInfo UP 主信息
@@ -25,10 +22,7 @@ type ChannelInfo struct {
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
 	return &Config{
-		Port:     8082,
 		Channels: []ChannelInfo{},
-		Limit:    25,
-		Style:    "default",
 	}
 }
 
@@ -56,26 +50,7 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("解析配置文件失败: %w", err)
 	}
 
-	// 验证配置
-	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
-
 	return cfg, nil
-}
-
-// Validate 验证配置
-func (c *Config) Validate() error {
-	if c.Port <= 0 || c.Port > 65535 {
-		c.Port = 8080
-	}
-	if c.Limit <= 0 {
-		c.Limit = 25
-	}
-	if c.Style == "" {
-		c.Style = "default"
-	}
-	return nil
 }
 
 // getDefaultConfigPath 获取默认配置文件路径

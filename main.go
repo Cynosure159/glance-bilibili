@@ -20,18 +20,14 @@ var templatesFS embed.FS
 func main() {
 	// 解析命令行参数
 	configPath := flag.String("config", "", "配置文件路径")
-	port := flag.Int("port", 0, "HTTP 服务端口（覆盖配置文件）")
+	port := flag.Int("port", 8082, "HTTP 服务端口")
+	limit := flag.Int("limit", 25, "默认显示视频数量")
 	flag.Parse()
 
 	// 加载配置
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		log.Fatalf("加载配置失败: %v", err)
-	}
-
-	// 命令行端口覆盖配置
-	if *port > 0 {
-		cfg.Port = *port
 	}
 
 	log.Printf("[INFO] 配置加载成功: %d 个 UP 主", len(cfg.Channels))
@@ -47,8 +43,8 @@ func main() {
 		log.Println("[INFO] 初始化成功")
 	}
 
-	// 创建处理器
-	handler, err := api.NewHandler(svc, templatesFS)
+	// 创建处理器 (默认展示样式固定为 horizontal-cards)
+	handler, err := api.NewHandler(svc, templatesFS, *limit)
 	if err != nil {
 		log.Fatalf("创建处理器失败: %v", err)
 	}
@@ -60,7 +56,7 @@ func main() {
 	http.HandleFunc("/", handler.VideosHandler)
 
 	// 启动服务
-	addr := fmt.Sprintf(":%d", cfg.Port)
+	addr := fmt.Sprintf(":%d", *port)
 	log.Printf("[INFO] 服务启动在 http://localhost%s", addr)
 
 	if err := http.ListenAndServe(addr, nil); err != nil {
