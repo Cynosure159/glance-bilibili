@@ -50,6 +50,19 @@
 go build -o glance-bilibil .
 ./glance-bilibil -config config/config.json -port 8082 -limit 25
 ```
+
+### 3. Docker 部署
+```bash
+# 构建镜像
+docker build -t glance-bilibil .
+
+# 运行容器
+docker run -d \
+  --name glance-bilibil \
+  -p 8082:8082 \
+  -v $(pwd)/config:/config \
+  glance-bilibil
+```
 ## 🔗 Glance 集成
 
 在你的 `glance.yml` 中添加以下扩展配置：
