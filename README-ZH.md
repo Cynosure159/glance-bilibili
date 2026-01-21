@@ -92,6 +92,11 @@ docker run -d \
 - **服务层**: `internal/service/video_service.go` - 并发汇总与排序算法。
 - **平台层**: `internal/platform/bilibili.go` - Bilibili API 客户端与 WBI 签名。
 
-## 📜 许可证
+## 📄 许可证
 
-MIT License.
+MIT License - 详情请参阅 [LICENSE](LICENSE) 文件。
+
+## 🙏 致谢
+
+- [Glance](https://github.com/glanceapp/glance) - 出色的自托管仪表板
+- 灵感来源于 Glance 内置的 Videos 小组件

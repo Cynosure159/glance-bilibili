@@ -78,6 +78,11 @@ The project follows a layered design for maintainability:
 - **Service Layer**: `internal/service/video_service.go` - Business logic and concurrency.
 - **Platform Layer**: `internal/platform/bilibili.go` - Bilibili API interaction.
 
-## 📜 License
+## 📄 License
 
-MIT License.
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- [Glance](https://github.com/glanceapp/glance) - The amazing self-hosted dashboard
+- Inspired by Glance's built-in Videos widget
