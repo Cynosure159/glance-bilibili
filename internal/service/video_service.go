@@ -36,11 +36,6 @@ func (s *VideoService) FetchAllVideos(limit int) (models.VideoList, error) {
 		return models.VideoList{}, nil
 	}
 
-	// 使用默认 limit
-	if limit <= 0 {
-		limit = s.config.Limit
-	}
-
 	// 并发获取
 	var wg sync.WaitGroup
 	videoChan := make(chan models.VideoList, len(s.config.Channels))
@@ -89,10 +84,6 @@ func (s *VideoService) FetchAllVideos(limit int) (models.VideoList, error) {
 
 // FetchChannelVideos 获取单个 UP 主的视频
 func (s *VideoService) FetchChannelVideos(mid string, limit int) (models.VideoList, error) {
-	if limit <= 0 {
-		limit = s.config.Limit
-	}
-
 	videos, err := s.client.FetchUserVideos(mid, limit, "")
 	if err != nil {
 		return nil, err

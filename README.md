@@ -22,13 +22,10 @@ A [Glance](https://github.com/glanceapp/glance) extension widget to display Bili
 Create a `config/config.json` in the project root:
 ```json
 {
-  "port": 8082,
   "channels": [
     { "mid": "946974", "name": "Bilibili Creator A" },
     { "mid": "163637592", "name": "Bilibili Creator B" }
-  ],
-  "limit": 25,
-  "style": "default"
+  ]
 }
 ```
 
@@ -36,7 +33,7 @@ Create a `config/config.json` in the project root:
 Build and start the application:
 ```bash
 go build -o glance-bilibil .
-./glance-bilibil -config config/config.json
+./glance-bilibil -config config/config.json -port 8082 -limit 25
 ```
 
 ---

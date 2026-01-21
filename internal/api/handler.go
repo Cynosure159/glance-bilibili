@@ -16,8 +16,10 @@ import (
 
 // Handler HTTP 处理器
 type Handler struct {
-	service   *service.VideoService
-	templates map[string]*template.Template
+	service      *service.VideoService
+	templates    map[string]*template.Template
+	defaultLimit int
+	defaultStyle string
 }
 
 // TemplateData 传递给模板的数据
@@ -28,11 +30,17 @@ type TemplateData struct {
 	CollapseAfterRows int
 }
 
+const (
+	DefaultStyle = "horizontal-cards"
+)
+
 // NewHandler 创建处理器
-func NewHandler(svc *service.VideoService, templatesFS embed.FS) (*Handler, error) {
+func NewHandler(svc *service.VideoService, templatesFS embed.FS, defaultLimit int) (*Handler, error) {
 	h := &Handler{
-		service:   svc,
-		templates: make(map[string]*template.Template),
+		service:      svc,
+		templates:    make(map[string]*template.Template),
+		defaultLimit: defaultLimit,
+		defaultStyle: DefaultStyle,
 	}
 
 	funcMap := template.FuncMap{
@@ -43,13 +51,13 @@ func NewHandler(svc *service.VideoService, templatesFS embed.FS) (*Handler, erro
 	// 加载模板
 	var err error
 
-	h.templates["default"], err = template.New("videos.html").Funcs(funcMap).ParseFS(
+	h.templates["horizontal-cards"], err = template.New("videos.html").Funcs(funcMap).ParseFS(
 		templatesFS, "templates/videos.html", "templates/video-card.html")
 	if err != nil {
 		return nil, err
 	}
 
-	h.templates["grid"], err = template.New("videos-grid.html").Funcs(funcMap).ParseFS(
+	h.templates["grid-cards"], err = template.New("videos-grid.html").Funcs(funcMap).ParseFS(
 		templatesFS, "templates/videos-grid.html", "templates/video-card.html")
 	if err != nil {
 		return nil, err
@@ -86,17 +94,16 @@ func relativeTime(t time.Time) string {
 // VideosHandler 处理视频列表请求
 func (h *Handler) VideosHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	cfg := h.service.GetConfig()
 
-	// 解析参数（URL 参数可覆盖配置）
-	limit := cfg.Limit
+	// 解析参数（URL 参数可覆盖默认值）
+	limit := h.defaultLimit
 	if limitStr := query.Get("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 			limit = l
 		}
 	}
 
-	style := cfg.Style
+	style := h.defaultStyle
 	if s := query.Get("style"); s != "" {
 		style = s
 	}
@@ -144,7 +151,7 @@ func (h *Handler) VideosHandler(w http.ResponseWriter, r *http.Request) {
 	// 选择模板
 	tmpl, ok := h.templates[style]
 	if !ok {
-		tmpl = h.templates["default"]
+		tmpl = h.templates["horizontal-cards"]
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -161,9 +168,8 @@ func (h *Handler) VideosHandler(w http.ResponseWriter, r *http.Request) {
 // JSONHandler 以 JSON 格式输出排序后的视频列表
 func (h *Handler) JSONHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	cfg := h.service.GetConfig()
 
-	limit := cfg.Limit
+	limit := h.defaultLimit
 	if limitStr := query.Get("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 			limit = l
@@ -244,8 +250,8 @@ func (h *Handler) HelpHandler(w http.ResponseWriter, r *http.Request) {
 	<h2>参数说明</h2>
 	<table>
 		<tr><th>参数</th><th>默认值</th><th>说明</th></tr>
-		<tr><td>limit</td><td>` + strconv.Itoa(cfg.Limit) + `</td><td>显示视频数量</td></tr>
-		<tr><td>style</td><td>` + cfg.Style + `</td><td>样式: default/grid/vertical-list</td></tr>
+		<tr><td>limit</td><td>` + strconv.Itoa(h.defaultLimit) + `</td><td>显示视频数量</td></tr>
+		<tr><td>style</td><td>` + h.defaultStyle + `</td><td>样式: horizontal-cards/grid-cards/vertical-list</td></tr>
 		<tr><td>mid</td><td>-</td><td>临时指定单个 UP 主 UID</td></tr>
 	</table>
 	

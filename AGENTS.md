@@ -43,19 +43,21 @@ type Video struct {
 
 ## ⚙️ 配置与部署
 
-### 配置文件 (`config.json`)
+### 配置文件 (`config/config.json`)
 ```json
 {
-  "port": 8082,
   "channels": [
     { "mid": "946974", "name": "影视飓风" },
-    { "mid": "25876945", "name": "老师好我叫何同学" },
-    { "mid": "517327498", "name": "极客湾Geekerwan" }
-  ],
-  "limit": 25,
-  "style": "default"
+    { "mid": "163637592", "name": "老师好我叫何同学" },
+    { "mid": "25876945", "name": "极客湾Geekerwan" }
+  ]
 }
 ```
+
+**命令行参数**：
+- `-port`: HTTP 服务端口（默认 `8082`）
+- `-limit`: 默认显示视频数量（默认 `25`）
+- `-config`: 配置文件路径（默认 `./config/config.json`）
 
 **环境变量**：
 - `CONFIG_PATH`: 配置文件路径（默认 `./config/config.json`）
@@ -94,8 +96,8 @@ type Video struct {
 **参数**：
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| limit | 配置值 | 显示视频数量 |
-| style | 配置值 | default/grid/vertical-list |
+| limit | 25 (flag) | 显示视频数量 |
+| style | horizontal-cards | 样式: horizontal-cards/grid-cards/vertical-list |
 | mid | - | 临时指定单个 UP 主 |
 
 ---
