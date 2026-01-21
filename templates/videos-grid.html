@@ -1,0 +1,8 @@
+{{/* 网格样式 */}}
+<div class="cards-grid collapsible-container" data-collapse-after-rows="{{ .CollapseAfterRows }}">
+    {{ range .Videos }}
+    <div class="card widget-content-frame thumbnail-parent">
+        {{ template "video-card" . }}
+    </div>
+    {{ end }}
+</div>

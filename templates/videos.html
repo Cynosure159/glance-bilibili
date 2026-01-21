@@ -1,0 +1,10 @@
+{{/* 默认样式 - 水平轮播 */}}
+<div class="carousel-container">
+    <div class="cards-horizontal carousel-items-container">
+        {{ range .Videos }}
+        <div class="card widget-content-frame thumbnail-parent">
+            {{ template "video-card" . }}
+        </div>
+        {{ end }}
+    </div>
+</div>
