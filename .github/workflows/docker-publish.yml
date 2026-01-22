@@ -8,7 +8,7 @@ on:
 env:
   # 用于 Docker 镜像的名称 (不包含 tag)
   # 注意：这里假设 Docker Hub 仓库名与 GitHub 仓库名(小写)一致，或者你可以在这里硬编码
-  IMAGE_NAME: glance-bilibil
+  IMAGE_NAME: glance-bilibili
 
 jobs:
   docker:
