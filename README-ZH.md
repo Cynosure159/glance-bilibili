@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">🎬 glance-bilibil</h1>
+  <h1 align="center">🎬 glance-bilibili</h1>
   <p align="center">
     一个为 <a href="https://github.com/glanceapp/glance">Glance</a> 开发的 Bilibili 视频汇总展示插件
     <br />
@@ -8,8 +8,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Cynosure159/glance-bilibil/actions/workflows/ci.yml">
-    <img src="https://github.com/Cynosure159/glance-bilibil/actions/workflows/ci.yml/badge.svg" alt="CI 状态" />
+  <a href="https://github.com/Cynosure159/glance-bilibili/actions/workflows/ci.yml">
+    <img src="https://github.com/Cynosure159/glance-bilibili/actions/workflows/ci.yml/badge.svg" alt="CI 状态" />
   </a>
 </p>
 
@@ -61,7 +61,7 @@
 #### 使用 Docker Run
 ```bash
 docker run -d \
-  --name glance-bilibil \
+  --name glance-bilibili \
   -p 8082:8082 \
   -v $(pwd)/config:/config \
   cynosure159/glance-bilibili:latest
@@ -73,9 +73,9 @@ docker run -d \
 version: '3.8'
 
 services:
-  glance-bilibil:
+  glance-bilibili:
     image: cynosure159/glance-bilibili:latest
-    container_name: glance-bilibil
+    container_name: glance-bilibili
     ports:
       - "8082:8082"
     volumes:
@@ -90,21 +90,21 @@ docker-compose up -d
 
 ### 3. 本地编译运行
 ```bash
-go build -o glance-bilibil .
-./glance-bilibil -config config/config.json -port 8082 -limit 25
+go build -o glance-bilibili .
+./glance-bilibili -config config/config.json -port 8082 -limit 25
 ```
 
 ### 4. 从源码构建 Docker 镜像
 ```bash
 # 构建镜像
-docker build -t glance-bilibil .
+docker build -t glance-bilibili .
 
 # 运行容器
 docker run -d \
-  --name glance-bilibil \
+  --name glance-bilibili \
   -p 8082:8082 \
   -v $(pwd)/config:/config \
-  glance-bilibil
+  glance-bilibili
 ```
 ## 🔗 Glance 集成
 

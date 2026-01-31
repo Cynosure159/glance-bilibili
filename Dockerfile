@@ -9,7 +9,7 @@ COPY . .
 RUN go mod download
 
 # 编译二进制文件，启用静态链接以兼容 Alpine
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o glance-bilibil .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o glance-bilibili .
 
 # 第二阶段：运行阶段（基于 Alpine，轻量且可调试）
 FROM alpine:3.20
@@ -19,7 +19,7 @@ RUN apk --no-cache add ca-certificates && \
     mkdir -p /config
 
 # 复制编译好的二进制文件
-COPY --from=builder /app/glance-bilibil /glance-bilibil
+COPY --from=builder /app/glance-bilibili /glance-bilibili
 
 # 设置挂载点
 VOLUME ["/config"]
@@ -31,4 +31,4 @@ ENV CONFIG_PATH=/config/config.json
 EXPOSE 8082
 
 # 设置启动命令
-CMD ["/glance-bilibil"]
+CMD ["/glance-bilibili"]

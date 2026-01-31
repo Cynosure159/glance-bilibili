@@ -4,7 +4,7 @@ package worker
 import (
 	"sync"
 
-	"glance-bilibil/internal/logger"
+	"glance-bilibili/internal/logger"
 )
 
 // Task 任务接口

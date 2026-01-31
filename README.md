@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">🎬 glance-bilibil</h1>
+  <h1 align="center">🎬 glance-bilibili</h1>
   <p align="center">
     A <a href="https://github.com/glanceapp/glance">Glance</a> extension widget to display Bilibili video feeds
     <br />
@@ -8,8 +8,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Cynosure159/glance-bilibil/actions/workflows/ci.yml">
-    <img src="https://github.com/Cynosure159/glance-bilibil/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
+  <a href="https://github.com/Cynosure159/glance-bilibili/actions/workflows/ci.yml">
+    <img src="https://github.com/Cynosure159/glance-bilibili/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
   </a>
 </p>
 
@@ -66,7 +66,7 @@ Create a `config/config.json` in the project root:
 #### Using Docker Run
 ```bash
 docker run -d \
-  --name glance-bilibil \
+  --name glance-bilibili \
   -p 8082:8082 \
   -v $(pwd)/config:/config \
   cynosure159/glance-bilibili:latest
@@ -78,9 +78,9 @@ Create a `docker-compose.yml`:
 version: '3.8'
 
 services:
-  glance-bilibil:
+  glance-bilibili:
     image: cynosure159/glance-bilibili:latest
-    container_name: glance-bilibil
+    container_name: glance-bilibili
     ports:
       - "8082:8082"
     volumes:
@@ -95,21 +95,21 @@ docker-compose up -d
 
 ### 3. Build from Source
 ```bash
-go build -o glance-bilibil .
-./glance-bilibil -config config/config.json -port 8082 -limit 25
+go build -o glance-bilibili .
+./glance-bilibili -config config/config.json -port 8082 -limit 25
 ```
 
 ### 4. Build Docker Image from Source
 ```bash
 # Build the image
-docker build -t glance-bilibil .
+docker build -t glance-bilibili .
 
 # Run container
 docker run -d \
-  --name glance-bilibil \
+  --name glance-bilibili \
   -p 8082:8082 \
   -v $(pwd)/config:/config \
-  glance-bilibil
+  glance-bilibili
 ```
 ## 🔗 Glance Integration
 
