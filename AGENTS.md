@@ -1,10 +1,10 @@
-# glance-bilibil 项目文档
+# glance-bilibili 项目文档
 
 > 项目知识库 - 为 AI Agents 和开发者提供完整项目上下文
 
 ## 📋 项目概述
 
-glance-bilibil 是一个为 [glance](https://github.com/glanceapp/glance) 开发的 Bilibili 视频扩展插件。支持配置多个 UP 主，按时间排序汇总显示最新视频。
+glance-bilibili 是一个为 [glance](https://github.com/glanceapp/glance) 开发的 Bilibili 视频扩展插件。支持配置多个 UP 主，按时间排序汇总显示最新视频。
 
 ## 🏗️ 系统架构
 
@@ -12,7 +12,7 @@ glance-bilibil 是一个为 [glance](https://github.com/glanceapp/glance) 开发
 ```
 Glance 看板
     ↓ HTTP GET /videos
-glance-bilibil (HTTP Server)
+glance-bilibili (HTTP Server)
     ├── API 层 (handler.go) - HTTP 路由
     ├── 服务层 (video_service.go) - 并发获取、排序汇总
     ├── 平台层 (bilibili.go) - Bilibili API 客户端
@@ -74,14 +74,14 @@ type Video struct {
 ### Docker 部署
 ```bash
 # 构建镜像
-docker build -t glance-bilibil .
+docker build -t glance-bilibili .
 
 # 运行容器
 docker run -d \
-  --name glance-bilibil \
+  --name glance-bilibili \
   -p 8082:8082 \
   -v $(pwd)/config:/config \
-  glance-bilibil
+  glance-bilibili
 ```
 
 ---
@@ -181,7 +181,7 @@ docker run -d \
 
 ## 📁 目录结构
 ```
-glance-bilibil/
+glance-bilibili/
 ├── assets/                    # 静态资源
 ├── main.go                    # 入口
 ├── config/                    # 配置目录
@@ -237,6 +237,11 @@ glance-bilibil/
 - [x] **文档优化**（2026-01-31）
   - 添加 README 和 README-ZH 效果预览图
   - 更新目录结构说明
+- [x] **项目重命名和迁移**（2026-01-31）
+  - 更新项目名称为 glance-bilibili
+  - 更新 Go Module 路径
+  - 更新 Docker 镜像名称
+  - 更新 Git 远程仓库地址
 
 ### 待办
 - [x] Docker 支持（2026-01-21）

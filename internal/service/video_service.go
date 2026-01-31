@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"glance-bilibil/internal/config"
-	"glance-bilibil/internal/logger"
-	"glance-bilibil/internal/models"
-	"glance-bilibil/internal/platform"
-	"glance-bilibil/internal/worker"
+	"glance-bilibili/internal/config"
+	"glance-bilibili/internal/logger"
+	"glance-bilibili/internal/models"
+	"glance-bilibili/internal/platform"
+	"glance-bilibili/internal/worker"
 )
 
 // cacheEntry 缓存条目

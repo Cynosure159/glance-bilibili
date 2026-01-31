@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"encoding/json"
-	"glance-bilibil/internal/config"
-	"glance-bilibil/internal/logger"
-	"glance-bilibil/internal/models"
-	"glance-bilibil/internal/service"
+	"glance-bilibili/internal/config"
+	"glance-bilibili/internal/logger"
+	"glance-bilibili/internal/models"
+	"glance-bilibili/internal/service"
 )
 
 // HelpData 帮助页面模板数据

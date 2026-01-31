@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"os"
 
-	"glance-bilibil/internal/api"
-	"glance-bilibil/internal/config"
-	"glance-bilibil/internal/logger"
-	"glance-bilibil/internal/service"
+	"glance-bilibili/internal/api"
+	"glance-bilibili/internal/config"
+	"glance-bilibili/internal/logger"
+	"glance-bilibili/internal/service"
 )
 
 //go:embed templates/*.html

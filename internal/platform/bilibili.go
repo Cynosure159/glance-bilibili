@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"glance-bilibil/internal/logger"
-	"glance-bilibil/internal/models"
+	"glance-bilibili/internal/logger"
+	"glance-bilibili/internal/models"
 )
 
 // bilibiliResponse 用于解析 Bilibili API 响应
