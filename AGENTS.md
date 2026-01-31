@@ -182,6 +182,7 @@ docker run -d \
 ## 📁 目录结构
 ```
 glance-bilibil/
+├── assets/                    # 静态资源
 ├── main.go                    # 入口
 ├── config/                    # 配置目录
 │   └── config.json            # 配置文件
@@ -233,6 +234,9 @@ glance-bilibil/
   - 环境自动检测：开发模式（高亮 Console + Debug）/ 生产模式（JSON + Info）
   - 智能默认值：`go run` 启动 Debug 级别，编译后/Docker Info 级别
   - 结构化字段：自动携带 UP主名称、ID、缓存状态等上下文
+- [x] **文档优化**（2026-01-31）
+  - 添加 README 和 README-ZH 效果预览图
+  - 更新目录结构说明
 
 ### 待办
 - [x] Docker 支持（2026-01-21）
