@@ -18,6 +18,18 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
 </p>
 
+## 📸 预览
+
+### 轮播卡片 (默认)
+![Horizontal Cards](./assets/images/preview-horizontal.png)
+
+### 网格布局
+![Grid Layout](./assets/images/preview-grid.png)
+
+### 垂直列表
+![Vertical List](./assets/images/preview-list.png)
+
+
 ## ✨ 功能特性
 
 - 👤 **多 UP 主支持**：通过 `config.json` 轻松配置多个感兴趣的 UP 主。

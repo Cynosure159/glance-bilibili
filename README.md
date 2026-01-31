@@ -24,6 +24,18 @@ Since Glance's native components only support YouTube video tracking, this plugi
 I'm not particularly experienced with Go, so most of the code was generated with AI assistance.
 If you have any feature requests or suggestions, please open an issue or submit a PR (which would be even better!).
 
+## 📸 Preview
+
+### Horizontal Cards (Default)
+![Horizontal Cards](./assets/images/preview-horizontal.png)
+
+### Grid Layout
+![Grid Layout](./assets/images/preview-grid.png)
+
+### Vertical List
+![Vertical List](./assets/images/preview-list.png)
+
+
 ## ✨ Features
 
 - 👤 **Multi-UP Support**: Monitor multiple Bilibili creators via a single config.
