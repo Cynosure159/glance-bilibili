@@ -2,6 +2,7 @@
 package service
 
 import (
+	"math/rand"
 	"sync"
 	"time"
 
@@ -10,6 +11,12 @@ import (
 	"glance-bilibili/internal/models"
 	"glance-bilibili/internal/platform"
 	"glance-bilibili/internal/worker"
+)
+
+const (
+	defaultWorkerCount    = 4
+	requestJitterMinDelay = 250 * time.Millisecond
+	requestJitterMaxDelay = 1200 * time.Millisecond
 )
 
 // cacheEntry 缓存条目
@@ -31,8 +38,8 @@ type VideoService struct {
 func NewVideoService(cfg *config.Config) *VideoService {
 	client := platform.NewBilibiliClient()
 
-	// 创建 Worker Pool，默认 10 个 Worker
-	pool := worker.NewPool(10)
+	// 创建 Worker Pool，降低并发以减少被风控拦截的概率。
+	pool := worker.NewPool(defaultWorkerCount)
 	pool.Start()
 
 	return &VideoService{
@@ -46,6 +53,34 @@ func NewVideoService(cfg *config.Config) *VideoService {
 // Initialize 初始化服务
 func (s *VideoService) Initialize() error {
 	return s.client.Initialize()
+}
+
+func (s *VideoService) getCachedVideos(mid string, cacheTTLSeconds int) (models.VideoList, bool) {
+	// 读取缓存条目
+	s.mu.RLock()
+	entry, exists := s.cache[mid]
+	s.mu.RUnlock()
+
+	if !exists {
+		return nil, false
+	}
+
+	// 缓存存在但已过期，仍返回旧数据供降级兜底使用
+	if time.Since(entry.updatedAt) >= time.Duration(cacheTTLSeconds)*time.Second {
+		return entry.videos, false
+	}
+
+	return entry.videos, true
+}
+
+func (s *VideoService) setCachedVideos(mid string, videos models.VideoList) {
+	// 更新缓存
+	s.mu.Lock()
+	s.cache[mid] = cacheEntry{
+		videos:    videos,
+		updatedAt: time.Now(),
+	}
+	s.mu.Unlock()
 }
 
 // fetchTask 获取单个频道视频的任务
@@ -63,21 +98,19 @@ func (t *fetchTask) Execute() error {
 	defer t.wg.Done()
 
 	// 1. 尝试从缓存获取
-	cacheKey := t.channel.Mid
-	t.service.mu.RLock()
-	entry, exists := t.service.cache[cacheKey]
-	t.service.mu.RUnlock()
-
-	// 如果缓存存在且未过期，直接使用
-	if exists && time.Since(entry.updatedAt) < time.Duration(t.cacheTTLSeconds)*time.Second {
+	cachedVideos, cacheValid := t.service.getCachedVideos(t.channel.Mid, t.cacheTTLSeconds)
+	if cacheValid {
 		logger.Debugw("命中有效缓存",
 			"up_name", t.channel.Name,
 			"up_mid", t.channel.Mid,
 			"cached", true,
 		)
-		t.resultChan <- entry.videos
+		t.resultChan <- cachedVideos
 		return nil
 	}
+
+	// 为非缓存请求增加轻微抖动，避免多个频道同时触发风控。
+	time.Sleep(randomRequestDelay())
 
 	// 2. 缓存不存在或已过期，从 API 获取
 	videos, err := t.service.client.FetchUserVideos(t.channel.Mid, t.limit, t.channel.Name)
@@ -88,23 +121,18 @@ func (t *fetchTask) Execute() error {
 			"error", err,
 		)
 		// 容错降级：如果 API 失败且有旧缓存，返回旧缓存
-		if exists {
+		if cachedVideos != nil {
 			logger.Infow("API 失败，返回过期缓存数据",
 				"up_name", t.channel.Name,
 				"cached", true,
 			)
-			t.resultChan <- entry.videos
+			t.resultChan <- cachedVideos
 		}
 		return err
 	}
 
 	// 3. 更新缓存
-	t.service.mu.Lock()
-	t.service.cache[cacheKey] = cacheEntry{
-		videos:    videos,
-		updatedAt: time.Now(),
-	}
-	t.service.mu.Unlock()
+	t.service.setCachedVideos(t.channel.Mid, videos)
 
 	logger.Infow("获取视频成功",
 		"up_name", t.channel.Name,
@@ -125,32 +153,21 @@ func (s *VideoService) FetchAllVideos(limit int, cacheTTLSeconds int) (models.Vi
 
 	// 创建结果通道和同步等待组
 	videoChan := make(chan models.VideoList, len(s.config.Channels))
-	var submitWg sync.WaitGroup  // 用于等待任务提交
-	var executeWg sync.WaitGroup // 用于等待任务执行
+	var executeWg sync.WaitGroup
 
 	// 提交任务到 Worker Pool
 	for _, channel := range s.config.Channels {
-		submitWg.Add(1)
 		executeWg.Add(1)
 
-		ch := channel // 避免闭包问题
-		task := &fetchTask{
+		s.workerPool.Submit(&fetchTask{
 			service:         s,
-			channel:         ch,
+			channel:         channel,
 			limit:           limit,
 			cacheTTLSeconds: cacheTTLSeconds,
 			resultChan:      videoChan,
 			wg:              &executeWg,
-		}
-
-		go func() {
-			defer submitWg.Done()
-			s.workerPool.Submit(task)
-		}()
+		})
 	}
-
-	// 等待所有任务提交完成
-	submitWg.Wait()
 
 	// 等待所有任务执行完成后关闭通道
 	go func() {
@@ -176,30 +193,25 @@ func (s *VideoService) FetchAllVideos(limit int, cacheTTLSeconds int) (models.Vi
 // FetchChannelVideos 获取单个 UP 主的视频
 func (s *VideoService) FetchChannelVideos(mid string, limit int, cacheTTLSeconds int) (models.VideoList, error) {
 	// 1. 尝试从缓存获取
-	s.mu.RLock()
-	entry, exists := s.cache[mid]
-	s.mu.RUnlock()
-
-	if exists && time.Since(entry.updatedAt) < time.Duration(cacheTTLSeconds)*time.Second {
-		return entry.videos.SortByNewest().Limit(limit), nil
+	cachedVideos, cacheValid := s.getCachedVideos(mid, cacheTTLSeconds)
+	if cacheValid {
+		return cachedVideos.SortByNewest().Limit(limit), nil
 	}
+
+	// 为非缓存请求增加轻微抖动，避免与批量抓取同时触发风控。
+	time.Sleep(randomRequestDelay())
 
 	// 2. 从 API 获取
 	videos, err := s.client.FetchUserVideos(mid, limit, "")
 	if err != nil {
-		if exists {
-			return entry.videos.SortByNewest().Limit(limit), nil
+		if cachedVideos != nil {
+			return cachedVideos.SortByNewest().Limit(limit), nil
 		}
 		return nil, err
 	}
 
 	// 3. 更新缓存
-	s.mu.Lock()
-	s.cache[mid] = cacheEntry{
-		videos:    videos,
-		updatedAt: time.Now(),
-	}
-	s.mu.Unlock()
+	s.setCachedVideos(mid, videos)
 
 	return videos.SortByNewest().Limit(limit), nil
 }
@@ -214,4 +226,12 @@ func (s *VideoService) Shutdown() {
 	if s.workerPool != nil {
 		s.workerPool.Stop()
 	}
+}
+
+func randomRequestDelay() time.Duration {
+	window := requestJitterMaxDelay - requestJitterMinDelay
+	if window <= 0 {
+		return requestJitterMinDelay
+	}
+	return requestJitterMinDelay + time.Duration(rand.Int63n(int64(window)))
 }

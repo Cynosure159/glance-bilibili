@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -132,6 +133,15 @@ func (c *BilibiliClient) ensureBuvid() error {
 	return nil
 }
 
+// refreshBuvid 强制刷新 buvid，通常用于命中风控后的重试。
+func (c *BilibiliClient) refreshBuvid() error {
+	c.buvidMu.Lock()
+	c.buvid3 = ""
+	c.buvid4 = ""
+	c.buvidMu.Unlock()
+	return c.ensureBuvid()
+}
+
 // getWebid 获取 w_webid 参数
 func (c *BilibiliClient) getWebid(mid string) string {
 	c.webidMu.RLock()
@@ -171,6 +181,13 @@ func (c *BilibiliClient) getWebid(mid string) string {
 	return ""
 }
 
+// invalidateWebid 清理指定 mid 的 w_webid 缓存，避免使用过期值重试。
+func (c *BilibiliClient) invalidateWebid(mid string) {
+	c.webidMu.Lock()
+	delete(c.webidCache, mid)
+	c.webidMu.Unlock()
+}
+
 // getDmParams 生成 dm 相关参数
 func getDmParams() url.Values {
 	chars := "ABCDEFGHIJK"
@@ -190,9 +207,56 @@ func getDmParams() url.Values {
 	return params
 }
 
+func retryBackoff(attempt int) time.Duration {
+	baseDelay := 800 * time.Millisecond
+	maxJitter := 900 * time.Millisecond
+	return time.Duration(attempt)*baseDelay + time.Duration(rand.Int63n(int64(maxJitter)))
+}
+
 // FetchUserVideos 获取指定用户的视频列表
 // authorOverride 如果非空，则用它覆盖 API 返回的作者名称（解决联合投稿问题）
 func (c *BilibiliClient) FetchUserVideos(mid string, limit int, authorOverride string) (models.VideoList, error) {
+	const maxAttempts = 3
+
+	var lastErr error
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		videos, err := c.fetchUserVideosOnce(mid, limit, authorOverride)
+		if err == nil {
+			return videos, nil
+		}
+
+		lastErr = err
+		if !isRiskControlError(err) || attempt == maxAttempts {
+			break
+		}
+
+		logger.Warnw("命中风控，准备刷新凭据后重试",
+			"up_mid", mid,
+			"attempt", attempt,
+			"error", err,
+		)
+
+		c.invalidateWebid(mid)
+		if refreshErr := c.wbiKeys.Update(); refreshErr != nil {
+			logger.Warnw("刷新 WBI 密钥失败",
+				"up_mid", mid,
+				"error", refreshErr,
+			)
+		}
+		if refreshErr := c.refreshBuvid(); refreshErr != nil {
+			logger.Warnw("刷新 buvid 失败",
+				"up_mid", mid,
+				"error", refreshErr,
+			)
+		}
+
+		time.Sleep(retryBackoff(attempt))
+	}
+
+	return nil, lastErr
+}
+
+func (c *BilibiliClient) fetchUserVideosOnce(mid string, limit int, authorOverride string) (models.VideoList, error) {
 	if err := c.ensureBuvid(); err != nil {
 		return nil, err
 	}
@@ -275,6 +339,10 @@ func (c *BilibiliClient) FetchUserVideos(mid string, limit int, authorOverride s
 	}
 
 	return videos, nil
+}
+
+func isRiskControlError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "HTTP 错误: 412")
 }
 
 func min(a, b int) int {

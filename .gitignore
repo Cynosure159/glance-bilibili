@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-glance-bilibil
+glance-bilibili
 
 # OS 文件
 .DS_Store
